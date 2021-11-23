@@ -1,4 +1,4 @@
-# Quant-On
+# Quant-On Project
 Quant-On 서비스 프로젝트
 
 1. 로그인기능
