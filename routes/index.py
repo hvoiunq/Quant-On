@@ -4,9 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 from starlette.requests import Request
-
-from app.database.conn import db
-from app.database.schema import Users
+from inspect import currentframe as frame
 
 router = APIRouter()
 
@@ -29,5 +27,10 @@ async def test(request: Request):
     :return:
     """
     print("state.user ", request.state.user)
+    try:
+        a = 1/0  # 테스트 -> 일부러 오류발생 테스트
+    except Exception as e:  # 핸들링되지 않을 에러가 있을때 사용하는
+        request.state.inspect = frame()
+        raise e
     current_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})")

@@ -12,6 +12,7 @@ class APIException(Exception):  # 부모클래스, Exception 상속
     code: str  # custom error code
     msg: str  # user에게 보여주는 메세지 , 커스터마이징하는거에 따라 다름
     detail: str
+    ex: Exception
 
     def __init__(
         self,
