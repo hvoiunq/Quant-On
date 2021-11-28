@@ -132,7 +132,7 @@ async def create_api_keys(request: Request, key_id: int, ip: m.CreateAPIWhiteLis
                           session: Session = Depends(db.session)):
     user = request.state.user
     await check_api_owner(user.id, key_id)
-    import ipaddress
+    import ipaddress  # python 내장 함수, ip검사
     try:
         _ip = ipaddress.ip_address(ip.ip_addr)
     except Exception as e:

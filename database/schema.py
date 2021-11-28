@@ -197,3 +197,33 @@ class ApiWhiteLists(Base, BaseMixin):
     __tablename__ = "api_whitelists"
     ip_addr = Column(String(length=64), nullable=False)
     api_key_id = Column(Integer, ForeignKey("api_keys.id"), nullable=False)
+
+
+class PortFolio(Base, BaseMixin):
+    __tablename__ = "portfolios"
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    portfolio_id = Column(int(length=10), enumerate)
+    portfolio_name = Column(String(length=100), nullable=True)
+    status = Column(Enum("main", "sub"), default="main")
+    # 총자산
+    # 수익률
+    # YTD
+    # MDD
+    # CAGR
+    # Sharpe ratio
+
+
+class PortFolioDetails(Base, BaseMixin):
+    __tablename__ = "portfolio_details"
+    user_id = ""
+    portfolio_id = ""
+    # 시장
+    # 종목이름
+    # 보유수량
+    # 평균 매수단가
+    # 매입금액
+    # 현재가 >> 데이터 가져와야할거같은데..?
+    # 평가금액
+    # 평가손익
+    # 수익률(%)
+    # 비중(%)

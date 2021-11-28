@@ -1,8 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from starlette.responses import Response
+from sqlalchemy.orm import Session
 from starlette.requests import Request
 
+from app.database.conn import db
+from app.database.schema import Users
+
+# TODO:
 """
 Quant-on main page
 주요기능
@@ -21,3 +26,13 @@ Quant-on main page
     - 정렬
     - 필터기능
 """
+
+router = APIRouter(prefix='/portfolio')
+
+
+@router.get("/myPortfolio")
+async def get_my_portfolio(request: Request, session: Session = Depends(db.session)):
+    print("get Portfolio")
+
+    user = request.state.user
+    user_portfolio =
