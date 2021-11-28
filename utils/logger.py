@@ -15,7 +15,6 @@ async def api_logger(request: Request, response=None, error=None):
     status_code = error.status_code if error else response.status_code
     error_log = None
     user = request.state.user
-    body = await request.body()  # 디버그용
     if error:
         if request.state.inspect:
             frame = request.state.inspect
@@ -51,8 +50,7 @@ async def api_logger(request: Request, response=None, error=None):
         datetimeUTC=datetime.utcnow().strftime(time_format),
         datetimeKST=(datetime.utcnow() + timedelta(hours=9)).strftime(time_format),
     )
-    if body:
-        log_dict["body"] = body
+
     if error and error.status_code >= 500:
         logger.error(json.dumps(log_dict))
     else:

@@ -26,11 +26,11 @@ async def test(request: Request):
     ELB 상태 체크용 API
     :return:
     """
-    print("state.user ", request.state.user)
-    try:
-        a = 1/0  # 테스트 -> 일부러 오류발생 테스트
-    except Exception as e:  # 핸들링되지 않을 에러가 있을때 사용하는
-        request.state.inspect = frame()
-        raise e
+    print("state.user ", request, request.state.user)
+    # try:
+    #     a = 1/0  # 테스트 -> 일부러 오류발생 테스트
+    # except Exception as e:  # 핸들링되지 않을 에러가 있을때 사용하는
+    #     request.state.inspect = frame()
+    #     raise e
     current_time = datetime.utcnow()
     return Response(f"Notification API (UTC: {current_time.strftime('%Y.%m.%d %H:%M:%S')})")

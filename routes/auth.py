@@ -67,6 +67,7 @@ async def register(sns_type: SnsType, reg_info: UserRegister, session: Session =
         token = dict(
                     Authorization=f"Bearer {create_access_token(data=UserToken.from_orm(new_user).dict(exclude={'pw', ''}),)}"
                 )  # token 생성, exlude : 제외 ,Authorization=f"Bearer 표준
+        #print("t", token)
         return token
     return JSONResponse(status_code=400, content=dict(msg="NOT_SUPPORTED"))
 

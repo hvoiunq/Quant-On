@@ -51,7 +51,7 @@ def create_app():
             except_path=["/health"]
         )
 
-    # 라우터 정의
+    # 라우터 정의 (tag, dependency 확인)
     app.include_router(index.router)  # app 이 실행될때 라우터가 있다고 알리는 선언
     app.include_router(auth.router, tags=["Authentication"], prefix="/api")  # auth에 해당하는 router 생성, prefix : 디폴트 경로이름 설정
     app.include_router(users.router, tags=["Users"], prefix="/api", dependencies=[Depends(API_KEY_HEADER)])  # Dependency가 걸린 api는 모두 자물쇠모양이 생성 -> key입력없이는 접근 불가, 토큰검사를 해주는 역

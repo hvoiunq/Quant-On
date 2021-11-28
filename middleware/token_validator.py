@@ -4,19 +4,13 @@ import typing
 import re
 import jwt  # db를 거치지 않고 유저의 로그인정보를 가지고 있을 수 있
 
-from fastapi.params import Header
 from jwt.exceptions import ExpiredSignatureError, DecodeError
-from pydantic import BaseModel
 from starlette.requests import Request
-from starlette.datastructures import URL, Headers
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse
 
 from app.common.consts import EXCEPT_PATH_LIST, EXCEPT_PATH_REGEX
-from starlette.responses import PlainTextResponse, RedirectResponse, Response
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.common import config, consts
-from app.common.config import conf
 from app.models import UserToken
 from app.errors import exceptions as ex
 from app.errors.exceptions import APIException
@@ -36,6 +30,7 @@ async def access_control(request: Request, call_next):
     headers = request.headers
     cookies = request.cookies
     url = request.url.path
+
     # 토큰검사 생략 URL
     if await url_pattern_check(url, EXCEPT_PATH_REGEX) or url in EXCEPT_PATH_LIST:
         response = await call_next(request)
@@ -46,19 +41,20 @@ async def access_control(request: Request, call_next):
     try:
         if url.startswith("/api"):
             # api 인경우 헤더로 토큰 검사
+            print("api ", headers.keys())
             if "authorization" in headers.keys():
                 token_info = await token_decode(access_token=headers.get("Authorization"))
                 request.state.user = UserToken(**token_info)
                 # 토큰 없음
 
             else:
-                if "Authorization" not in headers.keys():
+                if "authorization" not in headers.keys():
                     raise ex.NotAuthorized()
 
         else:
             # 템플릿 렌더링인 경우 쿠키에서 토큰 검사
             request.cookies[
-                "Authorization"] = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6NSwiZW1haWwiOiJoeW9qdW5nQHRlc3QuY29tIiwibmFtZSI6bnVsbCwic25zX3R5cGUiOm51bGx9.K5UkNtHt8ORNaOaZfhbb6zOqb_3q-6er860jup4J6QY"
+                "Authorization"] = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6OCwiZW1haWwiOiJ0ZXN0MkBleGFtcGxlLmNvbSIsIm5hbWUiOm51bGwsInNuc190eXBlIjpudWxsfQ.uwAzuGCkifFvici4ow_Hjj7Ac7Gcx2GP8DJ8pD6ZAxE'
 
             if "Authorization" not in cookies.keys():
                 raise ex.NotAuthorized()
@@ -94,6 +90,7 @@ async def token_decode(access_token):
     try:
         access_token = access_token.replace("Bearer ", "")
         payload = jwt.decode(access_token, key=consts.JWT_SECRET, algorithms=[consts.JWT_ALGORITHM])
+        # print("token payload ", payload)
     except ExpiredSignatureError:
         raise ex.TokenExpiredEx()
     except DecodeError:

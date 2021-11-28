@@ -31,7 +31,7 @@ class TrustedHostMiddleware:
         self.except_path = list(except_path)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        print("trusted hello")
+        # print("trusted hello")
         if self.allow_any or scope["type"] not in ("http", "websocket",):  # pragma: no cover
             await self.app(scope, receive, send)
             return
@@ -40,7 +40,7 @@ class TrustedHostMiddleware:
         host = headers.get("host", "").split(":")[0]
         is_valid_host = False
         found_www_redirect = False
-        print("trusted mid")
+        # print("trusted mid")
         for pattern in self.allowed_hosts:
             if (
                     host == pattern
