@@ -30,9 +30,55 @@ Quant-on main page
 router = APIRouter(prefix='/portfolio')
 
 
-@router.get("/myPortfolio")
+@router.get("/my")
 async def get_my_portfolio(request: Request, session: Session = Depends(db.session)):
+    """
+    대표 포트폴리오 조회 API
+    :param request:
+    :param session:
+    :return:
+    """
     print("get Portfolio")
 
     user = request.state.user
-    user_portfolio =
+    user_portfolio = ""
+
+
+@router.post("/")
+async def create_portfolio(request: Request, session: Session = Depends(db.session)):
+    """
+    포트폴리오 생성 API
+    :param request:
+    :param session:
+    :return:
+    """
+
+
+@router.put("/")
+async def update_portfolio(request: Request, session: Session = Depends(db.session)):
+    """
+    포트폴리오 수정 API
+    :param request:
+    :param session:
+    :return:
+    """
+
+
+@router.get("/details/{portfolio_id}")
+async def get_portfolio_details(request: Request, session: Session = Depends(db.session)):
+    """
+    포트폴리오 상세 조회 API
+    :param request:
+    :param session:
+    :return:
+    """
+
+
+@router.post("/details/{portfolio_id}")
+async def get_portfolio_details(request: Request, session: Session = Depends(db.session)):
+    """
+    포트폴리오 수정, 삭제
+    :param request:
+    :param session:
+    :return:
+    """
