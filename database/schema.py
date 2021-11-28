@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from sqlalchemy import (
     Column,
     Integer,
@@ -9,11 +7,9 @@ from sqlalchemy import (
     Enum,
     Boolean,
     ForeignKey,
-    JSON,
 )
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from app.database.conn import Base, db
 
 
@@ -54,7 +50,7 @@ class BaseMixin:
         return obj
 
     @classmethod
-    def get(cls, **kwargs):
+    def get(cls, **kwargs) -> object:  # objec ?
         """
         Simply get a Row
         :param kwargs:
@@ -102,10 +98,10 @@ class BaseMixin:
         obj = cls()
         if session:
             obj._session = session
-            obj._sess_served = True
+            obj.served = True
         else:
             obj._session = next(db.session())
-            obj._sess_served = False
+            obj.served = False
         query = obj._session.query(cls)
         query = query.filter(*cond)
         obj._q = query
@@ -131,28 +127,31 @@ class BaseMixin:
             self._q = self._q.order_by(col.asc()) if is_asc else self._q.order_by(col.desc())
         return self
 
-    def update(self, sess: Session = None, auto_commit: bool = False, **kwargs):
-        cls = self.cls_attr()
-        if sess:
-            query = sess.query(cls)
-        else:
-            sess = next(db.session())
-            query = sess.query(cls)
-        self.close()
-        return query.update(**kwargs)
+    def update(self, auto_commit: bool = False, **kwargs):
+        qs = self._q.update(kwargs)
+        get_id = self.id
+        ret = None
+
+        self._session.flush()
+        if qs > 0 :
+            ret = self._q.first()
+        if auto_commit:
+            self._session.commit()
+        return ret
 
     def first(self):
         result = self._q.first()
         self.close()
         return result
 
-    def delete(self, auto_commit: bool = False, **kwargs):
+    def delete(self, auto_commit: bool = False):
         self._q.delete()
         if auto_commit:
             self._session.commit()
         self.close()
 
     def all(self):
+        print(self.served)
         result = self._q.all()
         self.close()
         return result
@@ -162,17 +161,8 @@ class BaseMixin:
         self.close()
         return result
 
-    def dict(self, *args: str):
-        q_dict = {}
-        for c in self.__table__.columns:
-            if c.name in args:
-                q_dict[c.name] = getattr(self, c.name)
-
-        return q_dict
-
     def close(self):
-        if self._sess_served:
-            self._session.commit()
+        if not self.served:
             self._session.close()
         else:
             self._session.flush()
@@ -181,11 +171,29 @@ class BaseMixin:
 class Users(Base, BaseMixin):
     __tablename__ = "users"
     status = Column(Enum("active", "deleted", "blocked"), default="active")
+    user_id = Column(String(length=100), nullable=False)
     email = Column(String(length=255), nullable=True)
-    pw = Column(String(length=2000), nullable=True)
+    pw = Column(String(length=2000), nullable=False)
     name = Column(String(length=255), nullable=True)
     #phone_number = Column(String(length=20), nullable=True, unique=True)
     #profile_img = Column(String(length=1000), nullable=True)
     sns_type = Column(Enum("FB", "G", "K"), nullable=True)
     #marketing_agree = Column(Boolean, nullable=True, default=True)
     #keys = relationship("ApiKeys", back_populates="users")
+
+
+class ApiKeys(Base, BaseMixin):
+    __tablename__ = "api_keys"
+    access_key = Column(String(length=64), nullable=False, index=True)
+    secret_key = Column(String(length=64), nullable=False)
+    user_memo = Column(String(length=40), nullable=True)
+    status = Column(Enum("active", "stopped", "deleted"), default="active")
+    is_whitelisted = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    whitelist = relationship("ApiWhiteLists", backref="api_keys")
+
+
+class ApiWhiteLists(Base, BaseMixin):
+    __tablename__ = "api_whitelists"
+    ip_addr = Column(String(length=64), nullable=False)
+    api_key_id = Column(Integer, ForeignKey("api_keys.id"), nullable=False)

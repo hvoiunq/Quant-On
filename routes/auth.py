@@ -76,23 +76,29 @@ async def register(sns_type: SnsType, reg_info: UserRegister, session: Session =
 async def login(sns_type: SnsType, user_info: models.UserRegister):
     if sns_type == SnsType.email:  # 이메일 로그인
         is_exist = await is_email_exist(user_info.email)  # await : async 함수와 같이 써줘야함
+
         if not user_info.email or not user_info.pw:
             return JSONResponse(status_code=400, content=dict(msg="Email and PW must be provided'"))
         if not is_exist:  # 이메일 미존재
             return JSONResponse(status_code=400, content=dict(msg="NO_MATCH_USER"))
+
         user = Users.get(email=user_info.email)
         is_verified = bcrypt.checkpw(user_info.pw.encode("utf-8"), user.pw.encode("utf-8"))
+
         if not is_verified:  # 비밀번호 불일치
             return JSONResponse(status_code=400, content=dict(msg="NO_MATCH_USER"))
+
         token = dict(
                 Authorization=f"Bearer {create_access_token(data=UserToken.from_orm(user).dict(exclude={'pw', 'marketing_agree'}), )}"
                 )  # json web token 반환
         return token
+
     return JSONResponse(status_code=400, content=dict(msg="NOT_SUPPORTED"))
 
 
 async def is_email_exist(email: str):  # end point 는 아니고, 자주쓰이는 함수라 별도 정의 -> async 일 필요가 없다
     get_email = Users.get(email=email)
+
     if get_email:
         return True
     return False
@@ -100,6 +106,7 @@ async def is_email_exist(email: str):  # end point 는 아니고, 자주쓰이�
 
 def create_access_token(*, data: dict = None, expires_delta: int = None):
     to_encode = data.copy()
+
     if expires_delta:  # ?
         to_encode.update({"exp": datetime.utcnow() + timedelta(hours=expires_delta)})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)

@@ -12,7 +12,11 @@ router = APIRouter()
 @router.get("/")
 async def index():
     """
-    ELB 상태 체크용 API
+    quant-on main
+        지수 조회 모듈 호출
+        my portfolio 모듈 호출
+        performance 모듈 호출 (자신의 포트폴리오와 지수 비교)
+        dividend 모듈 호출
     :param session:
     :return:
     """

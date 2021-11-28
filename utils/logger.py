@@ -1,9 +1,11 @@
 import json
 import logging
+
 from datetime import timedelta, datetime
 from time import time
-from fastapi.requests import Request
 
+from fastapi.requests import Request
+from fastapi import Body
 from fastapi.logger import logger
 
 logger.setLevel(logging.INFO)  # 로그관리는 취향껏 고름

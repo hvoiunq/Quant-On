@@ -3,6 +3,7 @@ import time
 import typing
 import re
 import jwt  # db를 거치지 않고 유저의 로그인정보를 가지고 있을 수 있
+import sqlalchemy.exc
 
 from jwt.exceptions import ExpiredSignatureError, DecodeError
 from starlette.requests import Request
@@ -13,7 +14,7 @@ from app.common.consts import EXCEPT_PATH_LIST, EXCEPT_PATH_REGEX
 from app.common import config, consts
 from app.models import UserToken
 from app.errors import exceptions as ex
-from app.errors.exceptions import APIException
+from app.errors.exceptions import APIException, SqlFailureEx
 
 from app.utils.date_utils import D
 
@@ -25,10 +26,12 @@ async def access_control(request: Request, call_next):
     request.state.start = time.time()
     request.state.inspect = None
     request.state.user = None
+
     ip = request.headers["x-forwarded-for"] if "x-forwarded-for" in request.headers.keys() else request.client.host
     request.state.ip = ip.split(",")[0] if "," in ip else ip  # 부가정보 삭제
     headers = request.headers
     cookies = request.cookies
+
     url = request.url.path
 
     # 토큰검사 생략 URL
@@ -67,6 +70,7 @@ async def access_control(request: Request, call_next):
         await api_logger(request=request, response=response)
 
     except Exception as e:
+
         error = await exception_handler(e)
         error_dict = dict(status=error.status_code, msg=error.msg, detail=error.detail, code=error.code)
         response = JSONResponse(status_code=error.status_code, content=error_dict)
@@ -99,6 +103,8 @@ async def token_decode(access_token):
 
 
 async def exception_handler(error: Exception):
+    if isinstance(error, sqlalchemy.exc.OperationalError):
+        error = SqlFailureEx(ex=error)
     if not isinstance(error, APIException):
         error = APIException(ex=error, detail=str(error))  # exception을 APIException 방식으로 변경
     return error
