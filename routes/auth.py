@@ -62,12 +62,13 @@ async def register(sns_type: SnsType, reg_info: UserRegister, session: Session =
             return JSONResponse(status_code=400, content=dict(msg="Email and PW must be provided'"))  # 없으면 400에러 -> JSON으로 명시적오류를 써줬지만 미들웨어 raise를 이용하게 될 것
         if is_exist:
             return JSONResponse(status_code=400, content=dict(msg="EMAIL_EXISTS"))
+        user_id = reg_info.email.split('@')[0]
         hash_pw = bcrypt.hashpw(reg_info.pw.encode("utf-8"), bcrypt.gensalt())  # bcrypt : 해쉬함수, pw 검증을 하는방식 -> 해쉬로 비교, gensalt로 유추할수없게끔 조금만 다른 input이면 값이 달라진다 + 해쉬는 byte코드만 가능-> utf-8 인코딩
-        new_user = Users.create(session, auto_commit=True, pw=hash_pw, email=reg_info.email)  # Create를 클래스메소드로 변경했기 떄문에 Users().creat() -> Users.create(), hash된 pw를 넘겨줌
+        new_user = Users.create(session, auto_commit=True, user_id=user_id, pw=hash_pw, email=reg_info.email)  # Create를 클래스메소드로 변경했기 떄문에 Users().creat() -> Users.create(), hash된 pw를 넘겨줌
         token = dict(
                     Authorization=f"Bearer {create_access_token(data=UserToken.from_orm(new_user).dict(exclude={'pw', ''}),)}"
                 )  # token 생성, exlude : 제외 ,Authorization=f"Bearer 표준
-        #print("t", token)
+        # print("t", token)
         return token
     return JSONResponse(status_code=400, content=dict(msg="NOT_SUPPORTED"))
 

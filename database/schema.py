@@ -16,7 +16,7 @@ from app.database.conn import Base, db
 class BaseMixin:
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, nullable=False, default=func.utc_timestamp())  # 생성시간
-    updated_at = Column(DateTime, nullable=False, default=func.utc_timestamp(), onupdate=func.utc_timestamp() )  # 업데이트시간
+    updated_at = Column(DateTime, nullable=False, default=func.utc_timestamp(), onupdate=func.utc_timestamp())  # 업데이트시간
 
     def __init__(self):  # 실제로 실행되지는 않는다..!
         self._q = None
@@ -95,6 +95,7 @@ class BaseMixin:
             elif len(key) == 2 and key[1] == 'in':
                 cond.append((col.in_(val)))
 
+        # print('cond >>>>>>>>> ', cond)
         obj = cls()
         if session:
             obj._session = session
@@ -199,26 +200,25 @@ class ApiWhiteLists(Base, BaseMixin):
     api_key_id = Column(Integer, ForeignKey("api_keys.id"), nullable=False)
 
 
-class PortFolio(Base, BaseMixin):
-    __tablename__ = "portfolios"
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    portfolio_id = Column(int(length=10), enumerate)
-    portfolio_name = Column(String(length=100), nullable=True)
-    status = Column(Enum("main", "sub"), default="main")
-    # 총자산
-    # 수익률
-    # YTD
-    # MDD
-    # CAGR
-    # Sharpe ratio
+class PortFolioManagement(Base, BaseMixin):
+    __tablename__ = "portfolios_management"
+    email = Column(String(length=255), nullable=False)
+    valuation_rate = Column(String(length=4), nullable=False)  # 평가수익률
+    # 평가손익
+    # 평가금액
+    # 매수금액
+    # 포트폴리오항목 -> 메인 포트폴리오 조인으로 조회
 
 
 class PortFolioDetails(Base, BaseMixin):
     __tablename__ = "portfolio_details"
-    user_id = ""
-    portfolio_id = ""
-    # 시장
-    # 종목이름
+    email = Column(String(length=255), nullable=False)
+    portfolio_id = Column(String(length=10), nullable=False)
+    portfolio_name = Column(String(length=100), nullable=True)  # 포트폴리오명
+    status = Column(Enum("Y", "N"), default="N")
+    company_name = Column(String(length=100), nullable=False)  # 종목이름(company_name)
+    symbol = Column(String(length=10), nullable=True)
+    exchange = Column(String(length=10), nullable=True)  # 시장(exchange)
     # 보유수량
     # 평균 매수단가
     # 매입금액
@@ -227,3 +227,9 @@ class PortFolioDetails(Base, BaseMixin):
     # 평가손익
     # 수익률(%)
     # 비중(%)
+    # 총자산
+    # 수익률
+    # YTD
+    # MDD
+    # CAGR
+    # Sharpe ratio

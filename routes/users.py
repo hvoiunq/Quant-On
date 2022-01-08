@@ -29,9 +29,9 @@ async def get_me(request: Request):
     .count() 갯수반환
      alchemy를 이용하는경우 ->
     """
-    print("/user/me request ", request)
+    # print("/user/me request ", request)
     user = request.state.user
-    user_info = Users.get(id=user.id)
+    # user_info = Users.get(id=user.id)
     user_info = Users.filter(id__gt=user.id).order_by("-email").count() # - : 내림차
     # 위와 동일한 쿼리 : user_info = session.query(Users).filter(Users.id > user.id).order_by(Users.email.asc()).count()
     # 전달받은 session 사용, 가볍게 한번만 수행하는 쿼리는 session을 가져올필요가 없을거같
